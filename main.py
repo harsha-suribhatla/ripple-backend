@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from anthropic import Anthropic
+from dotenv import load_dotenv
 import requests
-from urllib.parse import urlparse, parse_qs
+import os
+
+load_dotenv()
 
 app = FastAPI()
 
@@ -13,13 +16,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = Anthropic(api_key="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")
+client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 @app.post("/extract")
 async def extract(data: dict):
     url = data.get("url")
 
-    # Fetch the page title from the URL
     try:
         headers = {"User-Agent": "Mozilla/5.0"}
         response = requests.get(url, headers=headers, timeout=5)
@@ -29,7 +31,6 @@ async def extract(data: dict):
     except:
         page_title = ""
 
-    # Ask Claude to extract the movie/show title
     message = client.messages.create(
         model="claude-opus-4-6",
         max_tokens=100,
